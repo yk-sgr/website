@@ -35,7 +35,6 @@ Astro Cactus is a simple opinionated starter built with the Astro framework. Use
 - [Satori](https://github.com/vercel/satori) for creating open graph png images
 - Pagination
 - [Automatic RSS feed](https://docs.astro.build/en/guides/rss)
-- [Webmentions](https://webmention.io/)
 - Auto-generated [sitemap](https://docs.astro.build/en/guides/integrations-guide/sitemap/)
 - [Pagefind](https://pagefind.app/) static search library integration
 - [Astro Icon](https://github.com/natemoo-re/astro-icon) svg icon component
@@ -81,7 +80,6 @@ Replace pnpm with your choice of npm / yarn
 ## Configure
 
 - Edit the config file `src/site.config.ts` for basic site meta data
-  - Read [this post](http://astro-cactus.chriswilliams.dev/posts/webmentions/) for adding webmentions to your site, otherwise set `siteConfig.webmentions.link` to an empty value.
 - Update file `astro.config.ts` site property with your own domain.
 - Replace & update files within the `/public` folder:
   - favicon.ico & other social icons
