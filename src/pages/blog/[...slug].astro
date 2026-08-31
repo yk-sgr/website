@@ -23,7 +23,12 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
 });
 ---
 
-<BaseLayout title={post.data.title}>
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  type="article"
+  publishedTime={post.data.pubDate}
+>
   <article>
     <header class="post-header">
       <h1>{post.data.title}</h1>
@@ -31,12 +36,12 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
         {dateFormatter.format(post.data.pubDate)}
       </time>
     </header>
-    <div class="post-body">
+    <div class="prose">
       <Content />
     </div>
   </article>
 
   <nav class="post-nav">
-    <a href="/">&larr; All posts</a>
+    <a href="/blog/">all posts</a>
   </nav>
 </BaseLayout>

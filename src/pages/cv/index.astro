@@ -1,0 +1,10 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Timeline from '../../components/Timeline.astro';
+import { POSITIONS } from '../../data/cv';
+---
+
+<BaseLayout title="cv" description="Where Yannick Seeger has worked and what he built there.">
+  <h1 class="page-title">cv</h1>
+  <Timeline positions={POSITIONS} />
+</BaseLayout>

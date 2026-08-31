@@ -1,0 +1,188 @@
+---
+import type { ContributionData, ContributionDay } from '../lib/contributions';
+
+interface Props {
+  data: ContributionData;
+}
+
+const { data } = Astro.props;
+
+const WEEK = 7;
+const LEVELS = 4;
+
+/**
+ * Quartiles over the active days, so the scale adapts to how busy a year was
+ * instead of being flattened by a single outlier day.
+ */
+function thresholds(days: ContributionDay[]): number[] {
+  const active = days
+    .filter((day) => day.total > 0)
+    .map((day) => day.total)
+    .sort((a, b) => a - b);
+  if (!active.length) return [1, 1, 1];
+  const at = (p: number) =>
+    active[Math.min(active.length - 1, Math.floor(active.length * p))];
+  return [at(0.25), at(0.5), at(0.75)];
+}
+
+function levelOf(total: number, cuts: number[]): number {
+  if (total <= 0) return 0;
+  return cuts.findIndex((cut) => total <= cut) + 1 || LEVELS;
+}
+
+const cuts = thresholds(data.days);
+
+// Pad to whole weeks so every column is a Sunday-to-Saturday strip.
+const leading = new Date(`${data.days[0]!.date}T00:00:00Z`).getUTCDay();
+const cells: (ContributionDay | null)[] = [
+  ...Array<null>(leading).fill(null),
+  ...data.days,
+];
+while (cells.length % WEEK !== 0) cells.push(null);
+
+const weeks = Array.from({ length: cells.length / WEEK }, (_, i) =>
+  cells.slice(i * WEEK, i * WEEK + WEEK),
+);
+
+const monthFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  timeZone: 'UTC',
+});
+const dayFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
+// One label per month, anchored to the first column that month appears in.
+const columnMonths = weeks.map((week) => {
+  const first = week.find((day) => day !== null);
+  return first
+    ? monthFormatter.format(new Date(`${first.date}T00:00:00Z`))
+    : null;
+});
+
+const months: { label: string; column: number }[] = [];
+columnMonths.forEach((label, index) => {
+  if (label === null || label === columnMonths[index - 1]) return;
+  let span = 0;
+  while (columnMonths[index + span] === label) span++;
+  // The year starts mid-month, so the leading sliver has no room for a label.
+  if (index === 0 && span < 3) return;
+  months.push({ label, column: index + 1 });
+});
+
+function tooltip(day: ContributionDay): string {
+  const when = dayFormatter.format(new Date(`${day.date}T00:00:00Z`));
+  if (day.total === 0) return `No contributions on ${when}`;
+  const parts = [
+    day.github > 0 ? `${day.github} GitHub` : null,
+    day.gitlab > 0 ? `${day.gitlab} GitLab` : null,
+  ].filter(Boolean);
+  return `${day.total} contribution${day.total === 1 ? '' : 's'} on ${when}: ${parts.join(', ')}`;
+}
+
+const numberFormatter = new Intl.NumberFormat('en-US');
+const sources = [
+  data.sources.github ? 'github' : null,
+  data.sources.gitlab ? 'gitlab' : null,
+].filter(Boolean);
+---
+
+<figure class="graph" style={`--weeks: ${weeks.length}`}>
+  <div class="months" aria-hidden="true">
+    {
+      months.map((month) => (
+        <span style={`grid-column: ${month.column}`}>{month.label}</span>
+      ))
+    }
+  </div>
+
+  <div class="grid" role="img" aria-label={`${data.total} contributions across ${sources.join(' and ')} in the past year`}>
+    {
+      cells.map((day) =>
+        day === null ? (
+          <span class="cell blank" aria-hidden="true" />
+        ) : (
+          <span class="cell" data-level={levelOf(day.total, cuts)} title={tooltip(day)} />
+        ),
+      )
+    }
+  </div>
+
+  <figcaption>
+    <span>{numberFormatter.format(data.total)} contributions in the past year</span>
+    {sources.length > 0 && <span class="sources">{sources.join(' + ')}</span>}
+  </figcaption>
+</figure>
+
+<style>
+  .graph {
+    margin: 0;
+    --gap: 3px;
+  }
+
+  .months,
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(var(--weeks), 1fr);
+    gap: var(--gap);
+  }
+
+  .months {
+    margin-bottom: 0.55rem;
+    font-size: 0.72rem;
+    text-transform: lowercase;
+    color: var(--color-faint);
+  }
+
+  .months span {
+    grid-row: 1;
+    white-space: nowrap;
+  }
+
+  .grid {
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, 1fr);
+  }
+
+  .cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--level-0);
+    transition: transform 160ms var(--ease);
+  }
+
+  .cell:hover {
+    transform: scale(1.35);
+  }
+
+  .cell.blank {
+    background: transparent;
+  }
+
+  .cell[data-level='1'] { background: var(--level-1); }
+  .cell[data-level='2'] { background: var(--level-2); }
+  .cell[data-level='3'] { background: var(--level-3); }
+  .cell[data-level='4'] { background: var(--level-4); }
+
+  figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.8rem;
+    font-size: 0.8rem;
+    color: var(--color-muted);
+  }
+
+  .sources {
+    color: var(--color-faint);
+  }
+
+  @media (max-width: 40rem) {
+    .graph { --gap: 2px; }
+    .months { font-size: 0.65rem; }
+    .months span:nth-child(even) { visibility: hidden; }
+  }
+</style>

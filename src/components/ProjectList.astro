@@ -1,0 +1,38 @@
+---
+import type { Project } from '../data/projects';
+import { external } from '../lib/external';
+
+interface Props {
+  projects: Project[];
+  /** The projects page shows descriptions; the home page just lists names. */
+  detailed?: boolean;
+}
+
+const { projects, detailed = false } = Astro.props;
+---
+
+<ul class:list={['project-list', { detailed }]}>
+  {
+    projects.map((project) => (
+      <li data-status={project.status}>
+        <div class="project-head">
+          <span class="project-name">
+            {project.href ? (
+              <a href={project.href} {...external(project.href)}>
+                {project.name}
+              </a>
+            ) : (
+              project.name
+            )}
+            {project.cloo && <span class="tag">cloo</span>}
+          </span>
+          <span class="entry-meta">{project.status}</span>
+        </div>
+        {detailed && <p>{project.description}</p>}
+        {detailed && project.formerDomain && (
+          <p class="former">formerly {project.formerDomain}</p>
+        )}
+      </li>
+    ))
+  }
+</ul>

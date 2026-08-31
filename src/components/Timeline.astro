@@ -1,0 +1,76 @@
+---
+import type { Position } from '../data/cv';
+import { external } from '../lib/external';
+
+interface Props {
+  positions: Position[];
+}
+
+const { positions } = Astro.props;
+
+const monthFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
+function label(month: string): string {
+  return monthFormatter.format(new Date(`${month}-01T00:00:00Z`));
+}
+
+/** Whole months, counted inclusively, so a Jul-to-Aug role reads as 2 months. */
+function months(from: string, to: string): number {
+  const [fy, fm] = from.split('-').map(Number) as [number, number];
+  const [ty, tm] = to.split('-').map(Number) as [number, number];
+  return (ty - fy) * 12 + (tm - fm) + 1;
+}
+
+function duration(from: string, to: string): string {
+  const total = months(from, to);
+  const years = Math.floor(total / 12);
+  const rest = total % 12;
+  return [
+    years > 0 ? `${years} yr${years === 1 ? '' : 's'}` : null,
+    rest > 0 ? `${rest} mo${rest === 1 ? '' : 's'}` : null,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+const today = new Date().toISOString().slice(0, 7);
+
+const entries = positions.map((position) => ({
+  ...position,
+  range: `${label(position.from)} → ${position.to ? label(position.to) : 'now'}`,
+  span: duration(position.from, position.to ?? today),
+  current: !position.to,
+}));
+---
+
+<ol class="timeline">
+  {
+    entries.map((entry) => (
+      <li data-current={entry.current ? '' : undefined}>
+        <div class="entry-head">
+          <h2>{entry.role}</h2>
+          <span class="entry-meta">{entry.range}</span>
+        </div>
+
+        <p class="company">
+          {entry.href ? (
+            <a href={entry.href} {...external(entry.href)}>
+              {entry.company}
+            </a>
+          ) : (
+            entry.company
+          )}
+          {entry.employment ? ` · ${entry.employment}` : ''}
+        </p>
+
+        <p class="where">
+          {[entry.location, entry.mode, entry.span].filter(Boolean).join(' · ')}
+        </p>
+      </li>
+    ))
+  }
+</ol>

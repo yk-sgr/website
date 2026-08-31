@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectList from '../../components/ProjectList.astro';
+import { PROJECTS } from '../../data/projects';
+---
+
+<BaseLayout title="projects" description="Things I have built, alone and through Cloo GmbH.">
+  <h1 class="page-title">projects</h1>
+
+  {
+    PROJECTS.length > 0 ? (
+      <ProjectList projects={PROJECTS} detailed />
+    ) : (
+      <p class="empty">nothing here yet.</p>
+    )
+  }
+</BaseLayout>
