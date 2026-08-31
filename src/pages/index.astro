@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ContributionGraph from '../components/ContributionGraph.astro';
 import PostList from '../components/PostList.astro';
@@ -8,6 +9,7 @@ import { LINKS, SITE } from '../consts';
 import { external } from '../lib/external';
 import { PROJECTS } from '../data/projects';
 import { getContributions } from '../lib/contributions';
+import portrait from '../assets/portrait.jpg';
 
 const all = await getCollection('posts', ({ data }) =>
   import.meta.env.PROD ? !data.draft : true,
@@ -23,22 +25,36 @@ const hasContributions = contributions.total > 0;
 
 <BaseLayout>
   <header class="masthead">
-    <h1>{SITE.title}</h1>
-    <p class="lede">
-      I build software and run <a href="https://cloo-gmbh.de" target="_blank" rel="noopener noreferrer">Cloo GmbH</a>{' '}
-      from Germany. This is where I write down what I&rsquo;m learning along the
-      way: the technical details, the company decisions, and everything in
-      between.
-    </p>
-    <ul class="links">
-      {
-        LINKS.map((link) => (
-          <li>
-            <a href={link.href} {...external(link.href)}>{link.label}</a>
-          </li>
-        ))
-      }
-    </ul>
+    <Image
+      class="portrait"
+      src={portrait}
+      alt={SITE.author}
+      width={480}
+      widths={[160, 320, 480]}
+      sizes="(max-width: 34rem) 7.5rem, 9.5rem"
+      loading="eager"
+    />
+    <div class="masthead-body">
+      <h1>{SITE.title}</h1>
+      <p class="lede">
+        I build software and run{' '}
+        <a href="https://cloo-gmbh.de" target="_blank" rel="noopener noreferrer">
+          Cloo GmbH
+        </a>{' '}
+        from Germany. This is where I write down what I&rsquo;m learning along
+        the way: the technical details, the company decisions, and everything in
+        between.
+      </p>
+      <ul class="links">
+        {
+          LINKS.map((link) => (
+            <li>
+              <a href={link.href} {...external(link.href)}>{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
   </header>
 
   {

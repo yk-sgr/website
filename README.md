@@ -71,6 +71,10 @@ Open Graph and Twitter card tags, and JSON-LD (`Person` on regular pages,
 `BlogPosting` on posts). `@astrojs/sitemap` writes the sitemap, which
 `public/robots.txt` points at.
 
+The social card is `public/og.jpg`, a 1200x630 crop of the portrait. It is a
+plain file, not generated at build time, so replacing the photo means
+re-cropping it by hand.
+
 Posts used to live under `/posts/<slug>/`. `redirects` in `astro.config.mjs`
 keeps those URLs working.
 
