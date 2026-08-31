@@ -1,0 +1,177 @@
+---
+import { Image } from 'astro:assets';
+import { SITE } from '../consts';
+import portrait from '../assets/portrait.jpg';
+---
+
+<div class="portrait-frame">
+  <button
+    class="portrait-trigger"
+    type="button"
+    aria-haspopup="dialog"
+    aria-label={`Enlarge the portrait of ${SITE.author}`}
+  >
+    <Image
+      class="portrait"
+      src={portrait}
+      alt={SITE.author}
+      width={480}
+      widths={[160, 320, 480]}
+      sizes="7rem"
+      loading="eager"
+    />
+  </button>
+
+  <dialog class="lightbox" aria-label={`Portrait of ${SITE.author}`}>
+    <Image
+      class="lightbox-image"
+      src={portrait}
+      alt=""
+      width={1200}
+      widths={[600, 900, 1200]}
+      sizes="(max-width: 40rem) 82vw, min(30rem, 66vh)"
+      loading="eager"
+    />
+    <button class="lightbox-close" type="button" aria-label="Close">
+      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <path d="M4 4l8 8M12 4l-8 8" />
+      </svg>
+    </button>
+  </dialog>
+</div>
+
+<script>
+  const GROW = 620;
+  const SHRINK = 460;
+  const EASE_OUT = 'cubic-bezier(0.16, 1, 0.3, 1)';
+  const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+
+  function setup() {
+    const frame = document.querySelector<HTMLElement>('.portrait-frame');
+    if (!frame || frame.dataset.ready) return;
+    frame.dataset.ready = 'true';
+
+    const trigger = frame.querySelector<HTMLButtonElement>('.portrait-trigger')!;
+    const thumb = trigger.querySelector<HTMLImageElement>('img')!;
+    const dialog = frame.querySelector<HTMLDialogElement>('.lightbox')!;
+    const full = dialog.querySelector<HTMLImageElement>('.lightbox-image')!;
+    const closer = dialog.querySelector<HTMLButtonElement>('.lightbox-close')!;
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const root = document.documentElement;
+
+    let busy = false;
+
+    /** The transform that lands `to` exactly on top of `from`. */
+    function onto(from: DOMRect, to: DOMRect) {
+      return `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width})`;
+    }
+
+    /**
+     * Holding the page still keeps the thumbnail where the animation expects
+     * it. Where the scrollbar takes up layout space, its width is handed back
+     * as padding so the centred column does not jump.
+     */
+    function hold() {
+      const gutter = window.innerWidth - root.clientWidth;
+      root.style.overflow = 'hidden';
+      if (gutter > 0) root.style.paddingRight = `${gutter}px`;
+    }
+
+    function release() {
+      root.style.overflow = '';
+      root.style.paddingRight = '';
+    }
+
+    function open() {
+      if (dialog.open || busy) return;
+
+      hold();
+      const from = thumb.getBoundingClientRect();
+      dialog.showModal();
+
+      if (calm.matches) return;
+
+      const to = full.getBoundingClientRect();
+      busy = true;
+      thumb.style.visibility = 'hidden';
+
+      const grow = full.animate(
+        [
+          { transform: onto(from, to), transformOrigin: 'top left' },
+          { transform: 'none', transformOrigin: 'top left' },
+        ],
+        { duration: GROW, easing: EASE_OUT },
+      );
+
+      // The control arrives once the picture has almost settled.
+      closer.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 220,
+        delay: GROW * 0.55,
+        easing: EASE_OUT,
+        fill: 'backwards',
+      });
+
+      grow.finished.finally(() => {
+        busy = false;
+      });
+    }
+
+    function dismiss() {
+      if (!dialog.open || busy) return;
+
+      if (calm.matches) {
+        dialog.close();
+        return;
+      }
+
+      busy = true;
+      const to = thumb.getBoundingClientRect();
+      const from = full.getBoundingClientRect();
+
+      dialog.classList.add('closing');
+      closer.animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: 140,
+        easing: EASE,
+        fill: 'forwards',
+      });
+
+      const shrink = full.animate(
+        [
+          { transform: 'none', transformOrigin: 'top left' },
+          { transform: onto(to, from), transformOrigin: 'top left' },
+        ],
+        { duration: SHRINK, easing: EASE, fill: 'forwards' },
+      );
+
+      shrink.finished.finally(() => {
+        dialog.classList.remove('closing');
+        dialog.close();
+        busy = false;
+      });
+    }
+
+    trigger.addEventListener('click', open);
+    closer.addEventListener('click', dismiss);
+
+    // The picture and the space around it both close; the button has its own
+    // handler and must not fire this one as well.
+    dialog.addEventListener('click', (event) => {
+      if (closer.contains(event.target as Node)) return;
+      dismiss();
+    });
+
+    // Escape closes the dialog outright, so take it over and animate instead.
+    dialog.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      dismiss();
+    });
+
+    dialog.addEventListener('close', () => {
+      release();
+      thumb.style.visibility = '';
+      trigger.focus({ preventScroll: true });
+    });
+  }
+
+  document.addEventListener('astro:page-load', setup);
+</script>

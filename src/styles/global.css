@@ -208,6 +208,36 @@ main > *:nth-child(4) { animation-delay: 200ms; }
   margin-bottom: 3rem;
 }
 
+/* ------------------------------------------------------------- portrait - */
+
+.portrait-frame {
+  display: inline-block;
+}
+
+/* Portrait and title read as one block, so the timeline below starts clean. */
+.cv-header .portrait-frame {
+  margin-bottom: 1rem;
+}
+
+.portrait-trigger {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  cursor: zoom-in;
+  transition: transform var(--dur) var(--ease);
+}
+
+.portrait-trigger:hover {
+  transform: scale(1.025);
+}
+
+.portrait-trigger:focus-visible {
+  outline: 1px solid var(--color-ink);
+  outline-offset: 4px;
+}
+
 .portrait {
   display: block;
   width: 7rem;
@@ -217,9 +247,91 @@ main > *:nth-child(4) { animation-delay: 200ms; }
   background: #6f7173;
 }
 
-/* Portrait and title read as one block, so the timeline below it starts clean. */
-.cv-header .portrait {
-  margin-bottom: 1rem;
+.lightbox {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  overflow: hidden;
+}
+
+/* Guarded on [open] so the closed dialog keeps the browser's own display:none. */
+.lightbox[open] {
+  display: grid;
+  place-items: center;
+}
+
+.lightbox::backdrop {
+  background: color-mix(in srgb, var(--color-bg) 76%, transparent);
+  backdrop-filter: blur(28px) saturate(130%);
+  opacity: 1;
+  transition: opacity 420ms var(--ease-out);
+}
+
+@starting-style {
+  .lightbox::backdrop {
+    opacity: 0;
+  }
+}
+
+/* Set while the picture shrinks back, so both fade out together. */
+.lightbox.closing::backdrop {
+  opacity: 0;
+}
+
+.lightbox-image {
+  display: block;
+  width: min(30rem, 66vh, 82vw);
+  height: auto;
+  border-radius: 10px;
+  cursor: zoom-out;
+  box-shadow:
+    0 1px 2px rgba(17, 17, 19, 0.06),
+    0 32px 64px -24px rgba(17, 17, 19, 0.34);
+}
+
+.lightbox-close {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition:
+    color var(--dur) var(--ease),
+    background-color var(--dur) var(--ease);
+}
+
+.lightbox-close:hover {
+  color: var(--color-ink);
+  background: var(--color-wash);
+}
+
+.lightbox-close:focus-visible {
+  outline: 1px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+.lightbox-close svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: round;
 }
 
 .masthead h1 {
