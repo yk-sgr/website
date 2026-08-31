@@ -64,6 +64,20 @@ no data at all the section is simply left off the page.
 
 To keep the graph current without pushing, redeploy on a schedule.
 
+## Icons
+
+The favicon is the lowercase `y` from Inter at weight 600, pulled straight out
+of the font file so the mark matches the type on the page. `favicon.svg` carries
+its own `prefers-color-scheme` rule and flips to light in a dark browser theme;
+`favicon.ico` is the legacy fallback at 16, 32 and 48. The Apple touch icon and
+the two manifest icons sit on the site background, because iOS fills alpha with
+black and a maskable icon gets cropped to a circle.
+
+Regenerating them means re-running the extraction against the Inter file Astro
+downloads into `node_modules/.astro/fonts/`, so the script is not wired into the
+build. `src/pages/site.webmanifest.js` is generated, so the name and description
+follow `src/consts.ts`.
+
 ## Portrait
 
 `src/components/Portrait.astro` owns the photo on the cv page. Clicking it opens
