@@ -205,33 +205,21 @@ main > *:nth-child(4) { animation-delay: 200ms; }
 /* -------------------------------------------------------------- masthead - */
 
 .masthead {
-  display: grid;
-  grid-template-columns: 9.5rem minmax(0, 1fr);
-  gap: 1.75rem;
-  align-items: start;
   margin-bottom: 3rem;
 }
 
 .portrait {
   display: block;
-  width: 100%;
+  width: 7rem;
   height: auto;
   border-radius: 4px;
   /* Close to the photo's own wall, so the block holds its shape while it loads. */
   background: #6f7173;
 }
 
-/* Two columns would leave the lede at about 25 characters a line here, so the
-   portrait moves above the text instead. */
-@media (max-width: 34rem) {
-  .masthead {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
-  }
-
-  .portrait {
-    width: 7.5rem;
-  }
+/* Portrait and title read as one block, so the timeline below it starts clean. */
+.cv-header .portrait {
+  margin-bottom: 1rem;
 }
 
 .masthead h1 {

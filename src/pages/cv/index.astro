@@ -1,10 +1,24 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Timeline from '../../components/Timeline.astro';
+import { SITE } from '../../consts';
 import { POSITIONS } from '../../data/cv';
+import portrait from '../../assets/portrait.jpg';
 ---
 
 <BaseLayout title="cv" description="Where Yannick Seeger has worked and what he built there.">
-  <h1 class="page-title">cv</h1>
+  <header class="cv-header">
+    <Image
+      class="portrait"
+      src={portrait}
+      alt={SITE.author}
+      width={480}
+      widths={[160, 320, 480]}
+      sizes="7rem"
+      loading="eager"
+    />
+    <h1 class="page-title">cv</h1>
+  </header>
   <Timeline positions={POSITIONS} />
 </BaseLayout>
